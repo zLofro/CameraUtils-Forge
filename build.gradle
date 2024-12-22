@@ -124,11 +124,6 @@ repositories {
     // flatDir {
     //     dir 'libs'
     // }
-
-    maven {
-        name = 'GeckoLib'
-        url 'https://dl.cloudsmith.io/public/geckolib3/geckolib/maven/'
-    }
 }
 
 dependencies {
@@ -153,15 +148,14 @@ dependencies {
     // For more info:
     // http://www.gradle.org/docs/current/userguide/artifact_dependencies_tutorial.html
     // http://www.gradle.org/docs/current/userguide/dependency_management.html
-    implementation fg.deobf("software.bernie.geckolib:geckolib-forge-${project.gecko_lib}")
 
     annotationProcessor 'org.spongepowered:mixin:0.8.5:processor'
 }
 
 mixin {
     // MixinGradle Settings
-    add sourceSets.main, 'mixins.modid.refmap.json'
-    config 'mixins.modid.json'
+    add sourceSets.main, 'mixins.camerautils.refmap.json'
+    config 'mixins.camerautils.json'
 }
 
 // This block of code expands all declared replace properties in the specified resource targets.

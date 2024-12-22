@@ -1,0 +1,20 @@
+{
+  "required": true,
+  "package": "me.lofro.camerautils.mixins",
+  "compatibilityLevel": "JAVA_8",
+  "minVersion": "0.8.5",
+  "refmap": "mixins.camerautils.refmap.json",
+  "injectors": {
+    "defaultRequire": 1
+  },
+  "mixins": [
+  ],
+  "client": [
+    "client.AbstractClientPlayerMixin",
+    "client.CameraMixin",
+    "client.GameRendererMixin",
+    "client.MouseHandlerMixin"
+  ],
+  "server": [
+  ]
+}
