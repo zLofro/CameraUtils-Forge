@@ -21,6 +21,8 @@ public class CameraUtils {
 
     public static ZoomTrack ZOOM_TRACK;
 
+    public static double zoom = 0.1;
+
     public CameraUtils() {
         IEventBus modEventBus = FMLJavaModLoadingContext.get().getModEventBus();
 
@@ -36,13 +38,24 @@ public class CameraUtils {
 
         @SubscribeEvent
         public static void onKeyInput(InputEvent.Key event) {
-            if (KeyBinding.ZOOM_KEY.consumeClick()) {
+            if (KeyBinding.ZOOM_KEY.isDown()) {
                 if (CameraUtils.ZOOM_TRACK == null) {
-                    CameraUtils.ZOOM_TRACK = new ZoomTrack(1, 0.1F, 10);
-                } else {
-                    CameraUtils.ZOOM_TRACK = null;
+                    CameraUtils.ZOOM_TRACK = new ZoomTrack(1, (float) CameraUtils.zoom, 5);
                 }
+            } else {
+                CameraUtils.ZOOM_TRACK = null;
             }
         }
     }
+
+    public static boolean onScroll(double amount) {
+        if (KeyBinding.ZOOM_KEY.isDown()) {
+            double zoom = CameraUtils.zoom;
+            double zoomSensitivity = 0.01;
+            CameraUtils.zoom = Math.max(0D, Math.min(2D, zoom + (-amount * zoomSensitivity)));
+            return true;
+        }
+        return false;
+    }
+
 }

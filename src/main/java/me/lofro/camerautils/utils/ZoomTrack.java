@@ -1,11 +1,12 @@
 package me.lofro.camerautils.utils;
 
+import me.lofro.camerautils.CameraUtils;
 import net.minecraft.util.Mth;
 
 public class ZoomTrack {
 
     private final float from;
-    private final float to;
+    private float to;
     private final int totalTime;
     private int time;
 
@@ -16,6 +17,7 @@ public class ZoomTrack {
     }
 
     public void tick() {
+        this.to = (float) CameraUtils.zoom;
         time++;
     }
 
