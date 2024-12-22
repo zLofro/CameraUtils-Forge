@@ -13,7 +13,7 @@ public class KeyBinding {
             KEY_ZOOM,
             KeyConflictContext.IN_GAME,
             InputConstants.Type.KEYSYM,
-            GLFW.GLFW_KEY_Z,
+            GLFW.GLFW_KEY_C,
             KEY_CATEGORY_CAMERA
     );
 }
