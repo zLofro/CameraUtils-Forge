@@ -1,15 +1,18 @@
 package me.lofro.camerautils;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import com.mojang.brigadier.Command;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.arguments.DoubleArgumentType;
 import com.mojang.brigadier.arguments.IntegerArgumentType;
-import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.context.CommandContext;
-import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.logging.LogUtils;
+import me.lofro.camerautils.data.types.ConfigData;
 import me.lofro.camerautils.utils.KeyBinding;
 import me.lofro.camerautils.utils.ZoomTrack;
+import me.lofro.camerautils.utils.data.JsonConfig;
+import me.lofro.camerautils.utils.data.Restorable;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.network.chat.Component;
@@ -18,30 +21,62 @@ import net.minecraftforge.client.event.InputEvent;
 import net.minecraftforge.client.event.RegisterKeyMappingsEvent;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.RegisterCommandsEvent;
-import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
-import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import org.slf4j.Logger;
 
+import java.time.LocalDate;
+
 @Mod(CameraUtils.MOD_ID)
-public class CameraUtils {
+public class CameraUtils implements Restorable {
     public static final String MOD_ID = "camerautils";
 
     public static final Logger LOGGER = LogUtils.getLogger();
 
     public static ZoomTrack ZOOM_TRACK;
 
-    public static double zoom = 0.1;
-    public static double zoomSensibility = 0.01;
+    public static ConfigData configData;
 
-    public static double from = 1;
-    public static int time = 1;
+    private JsonConfig config;
+
+    private static final Gson gson = new GsonBuilder()
+            .setPrettyPrinting()
+            .serializeNulls()
+            .create();
 
     public CameraUtils() {
-        IEventBus modEventBus = FMLJavaModLoadingContext.get().getModEventBus();
-
         MinecraftForge.EVENT_BUS.register(this);
+
+        try {
+            this.config = JsonConfig.modConfig("config.json");
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+
+        this.restore(config);
+
+        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+            this.save(config);
+        }));
+    }
+
+    @Override
+    public void restore(JsonConfig jsonConfig) {
+        if (jsonConfig.jsonObject.entrySet().isEmpty()) {
+            CameraUtils.configData = new ConfigData();
+        } else {
+            CameraUtils.configData = gson.fromJson(jsonConfig.jsonObject, ConfigData.class);
+        }
+    }
+
+    @Override
+    public void save(JsonConfig jsonConfig) {
+        jsonConfig.jsonObject(gson.toJsonTree(configData).getAsJsonObject());
+        try {
+            jsonConfig.save();
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @Mod.EventBusSubscriber(modid = MOD_ID, value = Dist.CLIENT)
@@ -55,7 +90,7 @@ public class CameraUtils {
         public static void onKeyInput(InputEvent.Key event) {
             if (KeyBinding.ZOOM_KEY.isDown()) {
                 if (CameraUtils.ZOOM_TRACK == null) {
-                    CameraUtils.ZOOM_TRACK = new ZoomTrack((float) CameraUtils.from, (float) CameraUtils.zoom, CameraUtils.time);
+                    CameraUtils.ZOOM_TRACK = new ZoomTrack((float) CameraUtils.configData.from, (float) CameraUtils.configData.zoom, CameraUtils.configData.time);
                 }
             } else {
                 CameraUtils.ZOOM_TRACK = null;
@@ -90,21 +125,21 @@ public class CameraUtils {
 
         private static int executeSetZoomSensibility(CommandContext<CommandSourceStack> context) {
             double zoomSensibility = DoubleArgumentType.getDouble(context, "zoomSensibility");
-            CameraUtils.zoomSensibility = zoomSensibility;
+            CameraUtils.configData.zoomSensibility = zoomSensibility;
             context.getSource().sendSuccess(() -> Component.literal("Has cambiado la sensibilidad de zoom a " + zoomSensibility), false);
             return Command.SINGLE_SUCCESS;
         }
 
         private static int executeSetTime(CommandContext<CommandSourceStack> context) {
             int time = IntegerArgumentType.getInteger(context, "time");
-            CameraUtils.time = time;
+            CameraUtils.configData.time = time;
             context.getSource().sendSuccess(() -> Component.literal("Has cambiado el tiempo de zoom a " + time), false);
             return Command.SINGLE_SUCCESS;
         }
 
         private static int executeSetFrom(CommandContext<CommandSourceStack> context) {
             double from = DoubleArgumentType.getDouble(context, "from");
-            CameraUtils.from = from;
+            CameraUtils.configData.from = from;
             context.getSource().sendSuccess(() -> Component.literal("Has cambiado el porcentaje de donde viene el zoom a " + from), false);
             return Command.SINGLE_SUCCESS;
         }
@@ -112,9 +147,9 @@ public class CameraUtils {
 
     public static boolean onScroll(double amount) {
         if (KeyBinding.ZOOM_KEY.isDown()) {
-            double zoom = CameraUtils.zoom;
-            double zoomSensitivity = CameraUtils.zoomSensibility;
-            CameraUtils.zoom = Math.max(0D, Math.min(2D, zoom + (-amount * zoomSensitivity)));
+            double zoom = CameraUtils.configData.zoom;
+            double zoomSensitivity = CameraUtils.configData.zoomSensibility;
+            CameraUtils.configData.zoom = Math.max(0D, Math.min(2D, zoom + (-amount * zoomSensitivity)));
             return true;
         }
         return false;

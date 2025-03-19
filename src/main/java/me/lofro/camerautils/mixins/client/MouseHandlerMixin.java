@@ -19,7 +19,7 @@ public class MouseHandlerMixin {
         if (!KeyBinding.ZOOM_KEY.isDown()) {
             return instance.get();
         }
-        return instance.get() * Math.min(1D, CameraUtils.zoom);
+        return instance.get() * Math.min(1D, CameraUtils.configData.zoom);
     }
 
     @Inject(at = @At("HEAD"), method = "onScroll", cancellable = true)

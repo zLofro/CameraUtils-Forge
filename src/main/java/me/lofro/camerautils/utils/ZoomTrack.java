@@ -17,7 +17,7 @@ public class ZoomTrack {
     }
 
     public void tick() {
-        this.to = (float) CameraUtils.zoom;
+        this.to = (float) CameraUtils.configData.zoom;
         time++;
     }
 

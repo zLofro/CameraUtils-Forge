@@ -20,7 +20,7 @@ public class AbstractClientPlayerMixin {
         if (CameraUtils.ZOOM_TRACK != null) {
             cir.setReturnValue(CameraUtils.ZOOM_TRACK.getCurrentFOV());
         } else {
-            cir.setReturnValue(cir.getReturnValue() * (KeyBinding.ZOOM_KEY.isDown() ? (float) convert(CameraUtils.zoom) : 1F));
+            cir.setReturnValue(cir.getReturnValue() * (KeyBinding.ZOOM_KEY.isDown() ? (float) convert(CameraUtils.configData.zoom) : 1F));
         }
     }
 
